@@ -39,6 +39,9 @@ export function parseConversation(rawText) {
   // Strip HTML blocks (Gemini's embedded stock charts, widgets, etc.)
   rawText = stripHtmlBlocks(rawText);
 
+  // Normalize nested lists (fix copy-paste artifacts from Gemini)
+  rawText = normalizeNestedLists(rawText);
+
   const lines = rawText.split("\n");
   const pairs = [];
   let currentQuestion = null;
@@ -148,6 +151,71 @@ function extractCitations(text) {
  */
 export function stripInlineCitations(text) {
   return text.replace(INLINE_CITATION_REGEX, "").replace(/\s{2,}/g, " ");
+}
+
+/**
+ * Normalize nested list indentation from Gemini's copy-paste output.
+ *
+ * Gemini's copy-paste often produces inconsistent nesting:
+ *   - `   * Item` (3-space indent) for sub-items
+ *   - `      * Item` (6-space indent) for sub-sub-items
+ *   - Mixed `*` bullets where numbered sub-lists were intended
+ *
+ * This normalizes them into standard markdown nesting that
+ * react-markdown renders correctly.
+ */
+function normalizeNestedLists(text) {
+  const lines = text.split("\n");
+  const result = [];
+  let lastNumberedIndent = -1;
+  let subItemCounter = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Track numbered list items at any indent level
+    const numberedMatch = line.match(/^(\s*)(\d+)\.\s/);
+    if (numberedMatch) {
+      lastNumberedIndent = numberedMatch[1].length;
+      subItemCounter = 0;
+      result.push(line);
+      continue;
+    }
+
+    // Detect indented bullet that's a child of a numbered item.
+    // Convert `   * Item` to `   1. Item` when it follows a numbered list.
+    const bulletMatch = line.match(/^(\s+)\*\s(.+)/);
+    if (bulletMatch && lastNumberedIndent >= 0) {
+      const indent = bulletMatch[1].length;
+      const content = bulletMatch[2];
+
+      // Bullet at same indent or deeper than the parent numbered item
+      // is a sub-item (Gemini copy-paste converts numbered sub-lists to bullets)
+      if (indent >= lastNumberedIndent) {
+        subItemCounter++;
+        // Use 4-space indent relative to parent for proper nesting
+        const newIndent = " ".repeat(lastNumberedIndent + 4);
+        result.push(`${newIndent}${subItemCounter}. ${content}`);
+        continue;
+      }
+    }
+
+    // Reset tracking on blank lines or non-list content
+    if (line.trim() === "" || (!numberedMatch && !bulletMatch)) {
+      // Only reset if it's a true content break (not just whitespace between list items)
+      if (line.trim() === "" && i + 1 < lines.length) {
+        const nextLine = lines[i + 1];
+        if (!nextLine.match(/^\s+[*]\s/) && !nextLine.match(/^\s+\d+\.\s/)) {
+          lastNumberedIndent = -1;
+          subItemCounter = 0;
+        }
+      }
+    }
+
+    result.push(line);
+  }
+
+  return result.join("\n");
 }
 
 /**

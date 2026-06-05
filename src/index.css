@@ -1,70 +1,150 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface: #0f172a;
-  --color-surface-alt: #1e293b;
-  --color-surface-hover: #334155;
-  --color-border: #334155;
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-accent: #38bdf8;
-  --color-accent-hover: #7dd3fc;
+  --color-surface: #fafaf9;
+  --color-surface-alt: #ffffff;
+  --color-surface-hover: #f5f5f4;
+  --color-border: #e7e5e4;
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #78716c;
+  --color-accent: #292524;
+  --color-accent-hover: #44403c;
 }
 
 body {
   margin: 0;
   background-color: var(--color-surface);
   color: var(--color-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Georgia", "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Markdown preview prose styles */
-.prose h1 { font-size: 1.5rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-.prose h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--color-accent); }
-.prose h3 { font-size: 1.125rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.4rem; color: var(--color-text-primary); }
-.prose h4 { font-size: 1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; color: var(--color-text-secondary); }
-.prose p { margin: 0.5rem 0; line-height: 1.7; }
-.prose ul, .prose ol { padding-left: 1.5rem; margin: 0.5rem 0; }
-.prose li { margin: 0.25rem 0; line-height: 1.6; }
-.prose a { color: var(--color-accent); text-decoration: underline; }
+/* Markdown preview prose styles — optimized for long-form reading */
+.prose {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  max-width: 65ch;
+}
+.prose h1 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1.625rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+.prose h2 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.4rem;
+}
+.prose h3 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.4rem;
+  color: var(--color-text-primary);
+}
+.prose h4 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: var(--color-text-secondary);
+}
+.prose p {
+  margin: 0.75rem 0;
+  line-height: 1.8;
+}
+.prose ul, .prose ol {
+  padding-left: 1.75rem;
+  margin: 0.75rem 0;
+}
+.prose ol { list-style-type: decimal; }
+.prose ol ol { list-style-type: decimal; }
+.prose li {
+  margin: 0.4rem 0;
+  line-height: 1.7;
+  padding-left: 0.25rem;
+}
+.prose li > ul, .prose li > ol {
+  margin: 0.25rem 0;
+}
+.prose a {
+  color: #6d5d4b;
+  text-decoration: underline;
+  text-decoration-color: #c8b9a6;
+  text-underline-offset: 2px;
+}
+.prose a:hover { text-decoration-color: #6d5d4b; }
+.prose strong { font-weight: 700; }
+.prose em { font-style: italic; }
 .prose code {
-  background: var(--color-surface-alt);
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  background: #f5f5f4;
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.85em;
+  color: #44403c;
 }
 .prose pre {
-  background: var(--color-surface-alt);
-  padding: 1rem;
+  background: #f5f5f4;
+  padding: 1rem 1.25rem;
   border-radius: 0.5rem;
   overflow-x: auto;
-  margin: 0.75rem 0;
+  margin: 1rem 0;
+  border: 1px solid var(--color-border);
 }
-.prose pre code { background: none; padding: 0; }
-.prose table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
+.prose pre code {
+  background: none;
+  padding: 0;
+  color: var(--color-text-primary);
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9375rem;
+}
 .prose th, .prose td {
   border: 1px solid var(--color-border);
-  padding: 0.5rem;
+  padding: 0.6rem 0.75rem;
   text-align: left;
 }
-.prose th { background: var(--color-surface-alt); font-weight: 600; }
-.prose hr { border-color: var(--color-border); margin: 1rem 0; }
+.prose th {
+  background: #f5f5f4;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.5rem 0;
+}
 .prose blockquote {
-  border-left: 3px solid var(--color-accent);
+  border-left: 3px solid #d6d3d1;
   padding-left: 1rem;
   color: var(--color-text-secondary);
-  margin: 0.75rem 0;
+  margin: 1rem 0;
+  font-style: italic;
 }
 
 /* Print styles for PDF export */
 @media print {
   body { background: white; color: black; }
   .no-print { display: none !important; }
-  .prose h2 { color: #0369a1; }
-  .prose a { color: #0369a1; }
-  .prose code { background: #f1f5f9; }
-  .prose pre { background: #f8fafc; border: 1px solid #e2e8f0; }
-  .prose th { background: #f1f5f9; }
-  .prose th, .prose td { border-color: #cbd5e1; }
+  .prose { max-width: none; }
+  .prose h2 { border-bottom-color: #cbd5e1; }
+  .prose a { color: #44403c; }
+  .prose code { background: #f5f5f4; }
+  .prose pre { background: #fafaf9; border-color: #e2e8f0; }
+  .prose th { background: #f5f5f4; }
+  .prose th, .prose td { border-color: #d6d3d1; }
 }

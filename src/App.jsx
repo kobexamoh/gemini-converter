@@ -41,8 +41,8 @@ export default function App() {
   return (
     <div className="min-h-screen px-4 py-6 md:px-8">
       <header className="no-print mx-auto mb-6 max-w-4xl">
-        <h1 className="text-xl font-bold text-accent">Gemini Converter</h1>
-        <p className="text-sm text-text-secondary">
+        <h1 className="text-lg font-semibold tracking-tight text-text-primary" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>Gemini Converter</h1>
+        <p className="text-sm text-text-secondary" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
           Paste a Gemini conversation → get clean markdown
         </p>
       </header>
@@ -66,6 +66,7 @@ export default function App() {
               <button
                 onClick={handleReset}
                 className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
               >
                 ← New conversion
               </button>

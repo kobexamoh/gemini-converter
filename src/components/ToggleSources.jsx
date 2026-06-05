@@ -2,12 +2,13 @@ export default function ToggleSources({ enabled, onToggle }) {
   return (
     <button
       onClick={onToggle}
-      className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors hover:bg-surface-hover"
+      className="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium transition-colors hover:bg-surface-hover"
       aria-pressed={enabled}
+      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
     >
       <span
         className={`inline-block h-4 w-8 rounded-full transition-colors ${
-          enabled ? "bg-accent" : "bg-border"
+          enabled ? "bg-stone-700" : "bg-stone-300"
         } relative`}
       >
         <span
