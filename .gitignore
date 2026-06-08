@@ -19,5 +19,8 @@ dist/
 *.test.md
 scratch/
 
+# project state (contains local paths)
+PROJECT_STATE.md
+
 # PWA dev artifacts
 dev-dist/

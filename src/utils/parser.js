@@ -39,6 +39,21 @@ export function parseConversation(rawText) {
   // Strip HTML blocks (Gemini's embedded stock charts, widgets, etc.)
   rawText = stripHtmlBlocks(rawText);
 
+  // Clean LaTeX notation into readable plain text
+  rawText = cleanLatexNotation(rawText);
+
+  // Re-insert line breaks before block-level markers that got merged inline
+  rawText = normalizeBlockElements(rawText);
+
+  // Convert long dash runs into proper markdown horizontal rules
+  rawText = normalizeHorizontalRules(rawText);
+
+  // Wrap [Foo] ➔ [Bar] flow diagrams in code fences
+  rawText = wrapFlowDiagrams(rawText);
+
+  // Ensure table pipe syntax gets blank lines around it
+  rawText = normalizeTableBlocks(rawText);
+
   // Normalize nested lists (fix copy-paste artifacts from Gemini)
   rawText = normalizeNestedLists(rawText);
 
@@ -150,7 +165,7 @@ function extractCitations(text) {
  * Strip inline citation markers [1, 2, 3] from text.
  */
 export function stripInlineCitations(text) {
-  return text.replace(INLINE_CITATION_REGEX, "").replace(/\s{2,}/g, " ");
+  return text.replace(INLINE_CITATION_REGEX, "").replace(/ {2,}/g, " ");
 }
 
 /**
@@ -213,6 +228,132 @@ function normalizeNestedLists(text) {
     }
 
     result.push(line);
+  }
+
+  return result.join("\n");
+}
+
+/**
+ * Clean LaTeX notation from Gemini output into readable plain text.
+ *
+ * Handles:
+ *   - `$\$34$` → `$34`  (inline dollar amounts)
+ *   - `$397\%$` → `397%` (inline percentages)
+ *   - `$$\text{Market Cap} = ...$$` → `Market Cap = ...` (display math)
+ *   - `\text{...}` → unwrapped text
+ */
+function cleanLatexNotation(text) {
+  // Display math blocks: $$...$$ → unwrap and clean inner LaTeX
+  text = text.replace(/\$\$([^$]+?)\$\$/g, (match, inner) => {
+    return inner
+      .replace(/\\text\{([^}]*)\}/g, "$1")
+      .replace(/\\times/g, "×")
+      .replace(/\\,/g, " ")
+      .trim();
+  });
+
+  // Inline dollar amounts: $\$34$ → $34
+  text = text.replace(/\$\\\$([\d,.]+)\$/g, "$$$1");
+
+  // Inline percentages: $397\%$ → 397%
+  text = text.replace(/\$([\d,.]+)\\%\$/g, "$1%");
+
+  // Any remaining \text{...} outside of math delimiters
+  text = text.replace(/\\text\{([^}]*)\}/g, "$1");
+
+  return text;
+}
+
+/**
+ * Re-insert line breaks before block-level markdown markers that Gemini's
+ * copy-paste merged into a single line.
+ *
+ * Detects inline `##`, `* `, `1. `, etc. mid-paragraph and splits them
+ * onto their own lines with blank lines before them so markdown renders
+ * headings, lists, and other block elements correctly.
+ */
+function normalizeBlockElements(text) {
+  // Split heading markers (##) onto their own line when mid-paragraph
+  // e.g. "some text ## Heading" → "some text\n\n## Heading"
+  text = text.replace(/([^\n])\s*(#{1,6}\s)/g, "$1\n\n$2");
+
+  // Split inline bullet items after colon: "details: * Item" → "details:\n\n* Item"
+  text = text.replace(/:\s*\*\s+/g, ":\n\n* ");
+
+  // Split inline numbered list items: "...text 1. Item" when 1. follows sentence-end
+  text = text.replace(/([.!?])\s+(\d+\.\s)/g, "$1\n\n$2");
+
+  return text;
+}
+
+/**
+ * Convert long dash sequences (5+ dashes) into proper markdown
+ * horizontal rules (`---`) with blank lines around them.
+ */
+function normalizeHorizontalRules(text) {
+  return text.replace(/^-{5,}$/gm, "\n---\n");
+}
+
+/**
+ * Detect `[Foo] ➔ [Bar] ➔ [Baz]` flow diagram patterns and wrap them
+ * in markdown code fences so they render as preformatted blocks
+ * instead of running into surrounding text.
+ */
+function wrapFlowDiagrams(text) {
+  // Match lines containing [Something] ➔ [Something] (at least one arrow)
+  return text.replace(
+    /^(.*\[.+?\]\s*➔\s*\[.+?\].*)$/gm,
+    "\n```\n$1\n```\n"
+  );
+}
+
+/**
+ * Ensure markdown table blocks (lines starting with `|`) have blank
+ * lines before and after them so react-markdown parses them as tables.
+ */
+function normalizeTableBlocks(text) {
+  const lines = text.split("\n");
+  const result = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const isTableLine = /^\|/.test(line.trim());
+    const prevIsTableLine =
+      i > 0 && /^\|/.test((lines[i - 1] || "").trim());
+    const nextIsTableLine =
+      i < lines.length - 1 && /^\|/.test((lines[i + 1] || "").trim());
+
+    // Add blank line before first table row
+    if (isTableLine && !prevIsTableLine) {
+      // Insert separator row after header if the next line is also a table
+      // line but there's no `---` separator yet
+      result.push("");
+    }
+
+    result.push(line);
+
+    // If this is the first table row and next is also a table row,
+    // check if we need to inject a separator row
+    if (
+      isTableLine &&
+      nextIsTableLine &&
+      !prevIsTableLine
+    ) {
+      // Count columns by splitting on |
+      const cols = line.split("|").length - 1;
+      const nextLine = lines[i + 1].trim();
+      // Only inject separator if next line isn't already one
+      if (!/^[\s|:-]+$/.test(nextLine)) {
+        const sep =
+          "|" + " --- |".repeat(Math.max(cols, 1));
+        result.push(sep);
+      }
+    }
+
+    // Add blank line after last table row
+    if (isTableLine && !nextIsTableLine) {
+      result.push("");
+    }
   }
 
   return result.join("\n");
